@@ -1,5 +1,5 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
 <manifest xmlns:android="http://schemas.android.com/apk/res/android" package="Ratuj_Ludzi_Android.Ratuj_Ludzi_Android" android:versionCode="1" android:versionName="1.0">
 	<uses-sdk />
-	<application android:label="Ratuj_Ludzi_Android" android:icon="@drawable/Icon"></application>
+	<application android:label="Ratuj Ludzi" android:icon="@drawable/Icon"></application>
 </manifest>
