@@ -3,7 +3,7 @@ Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio 14
 VisualStudioVersion = 14.0.23107.0
 MinimumVisualStudioVersion = 10.0.40219.1
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Ratuj Ludzi", "Ratuj Ludzi\Ratuj Ludzi.csproj", "{1CA96ABE-010D-4C56-82C3-A4D6C2FCBAB6}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Ratuj Ludzi_Windows8", "Ratuj Ludzi\Ratuj Ludzi_Windows8.csproj", "{1CA96ABE-010D-4C56-82C3-A4D6C2FCBAB6}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Ratuj_Ludzi_Android", "Ratuj_Ludzi_Android\Ratuj_Ludzi_Android.csproj", "{47229269-5EE8-4C35-A020-6B9907394EC9}"
 EndProject
