@@ -35,19 +35,40 @@ namespace Ratuj_Ludzi
 
             _targetTimer.Tick += targetTimer_Tick;
             _targetTimer.Interval = TimeSpan.FromSeconds(.1);
-            this._navigationHelper = new NavigationHelper(this);
-            this._navigationHelper.LoadState += navigationHelper_LoadState;
-            this._navigationHelper.SaveState += navigationHelper_SaveState;
+
+            _navigationHelper = new NavigationHelper(this);
+            _navigationHelper.LoadState += navigationHelper_LoadState;
+            _navigationHelper.SaveState += navigationHelper_SaveState;
+        }
+
+        #region Private methods
+
+        private void enemyTimer_Tick(object sender, object e)
+        {
+            addEnemy();
+        }
+
+        private void addEnemy()
+        {
+            ContentControl enemy = new ContentControl();
+            enemy.Template = Resources["EnemyTemplate"] as ControlTemplate;
+            animateEnemy(enemy, 0, playArea.ActualWidth - 100, "(Canvas.Left)");
+            animateEnemy(enemy, _random.Next((int)playArea.ActualHeight - 100),
+                _random.Next((int)playArea.ActualHeight - 100), "(Canvas.Top)");
+            playArea.Children.Add(enemy);
+
+            enemy.PointerEntered += enemy_PointerEntered;
         }
 
         private void targetTimer_Tick(object sender, object e)
         {
             progressBar.Value += 1;
+
             if (progressBar.Value >= progressBar.Maximum)
-                EndTheGame();
+                endTheGame();
         }
 
-        private void EndTheGame()
+        private void endTheGame()
         {
             if (!playArea.Children.Contains(gameOverText))
             {
@@ -59,17 +80,12 @@ namespace Ratuj_Ludzi
             }
         }
 
-        private void enemyTimer_Tick(object sender, object e)
-        {
-            AddEnemy();
-        }
-
         private void startButton_Click(object sender, RoutedEventArgs e)
         {
-            StartGame();
+            startGame();
         }
 
-        private void StartGame()
+        private void startGame()
         {
             human.IsHitTestVisible = true;
             _humanCaptured = false;
@@ -82,25 +98,13 @@ namespace Ratuj_Ludzi
             _targetTimer.Start();
         }
 
-        private void AddEnemy()
-        {
-            ContentControl enemy = new ContentControl();
-            enemy.Template = Resources["EnemyTemplate"] as ControlTemplate;
-            AnimateEnemy(enemy, 0, playArea.ActualWidth - 100, "(Canvas.Left)");
-            AnimateEnemy(enemy, _random.Next((int)playArea.ActualHeight - 100), 
-                _random.Next((int)playArea.ActualHeight - 100), "(Canvas.Top)");
-            playArea.Children.Add(enemy);
-
-            enemy.PointerEntered += enemy_PointerEntered;
-        }
-
-        void enemy_PointerEntered(object sender, PointerRoutedEventArgs e)
+        private void enemy_PointerEntered(object sender, PointerRoutedEventArgs e)
         {
             if (_humanCaptured)
-                EndTheGame();
+                endTheGame();
         }
 
-        private void AnimateEnemy(ContentControl enemy, double from, double to, string propertyToAnimate)
+        private void animateEnemy(ContentControl enemy, double from, double to, string propertyToAnimate)
         {
             Storyboard storyboard = new Storyboard() { AutoReverse = true, RepeatBehavior = RepeatBehavior.Forever };
             DoubleAnimation animation = new DoubleAnimation()
@@ -109,11 +113,12 @@ namespace Ratuj_Ludzi
                 To = to,
                 Duration = new Duration(TimeSpan.FromSeconds(_random.Next(4, 6)))
             };
+
             Storyboard.SetTarget(animation, enemy);
             Storyboard.SetTargetProperty(animation, propertyToAnimate);
             storyboard.Children.Add(animation);
             storyboard.Begin();
-            
+
         }
 
         private void human_PointerPressed(object sender, PointerRoutedEventArgs e)
@@ -136,7 +141,7 @@ namespace Ratuj_Ludzi
                 Canvas.SetTop(target, _random.Next(100, (int)playArea.ActualHeight - 100));
                 _humanCaptured = false;
                 human.IsHitTestVisible = true;
-                
+
             }
         }
 
@@ -146,7 +151,7 @@ namespace Ratuj_Ludzi
             {
                 Point pointerPosition = e.GetCurrentPoint(null).Position;
                 Point relativePosition = grid.TransformToVisual(playArea).TransformPoint(pointerPosition);
-                if ((Math.Abs(relativePosition.X - Canvas.GetLeft(human)) > human.ActualWidth *3)
+                if ((Math.Abs(relativePosition.X - Canvas.GetLeft(human)) > human.ActualWidth * 3)
                     || (Math.Abs(relativePosition.Y - Canvas.GetTop(human)) > human.ActualHeight * 3))
                 {
                     _humanCaptured = false;
@@ -163,8 +168,10 @@ namespace Ratuj_Ludzi
         private void playArea_PointerExited(object sender, PointerRoutedEventArgs e)
         {
             if (_humanCaptured)
-                EndTheGame();
+                endTheGame();
         }
+
+        #endregion Private methods
 
         #region NavigationHelper registration
 

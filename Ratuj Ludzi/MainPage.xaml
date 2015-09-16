@@ -75,7 +75,7 @@
         <StackPanel Grid.Column="2" Orientation="Vertical" Grid.Row="2" HorizontalAlignment="Center" VerticalAlignment="Center">
             <TextBlock 
         		TextWrapping="Wrap" 
-        		Text="Ich unikaj" Style="{StaticResource SubheaderTextBlockStyle}" SelectionChanged="TextBlock_SelectionChanged" 
+        		Text="Ich unikaj" Style="{StaticResource SubheaderTextBlockStyle}"
                 VerticalAlignment="Center" HorizontalAlignment="Center"/>
             <ContentControl HorizontalAlignment="Center" VerticalAlignment="Center" Template="{StaticResource EnemyTemplate}">
                 <Ellipse Fill="Gray" Height="100" Stroke="Black" Width="75"/>
