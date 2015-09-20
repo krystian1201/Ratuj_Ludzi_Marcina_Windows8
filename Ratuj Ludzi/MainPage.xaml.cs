@@ -138,7 +138,8 @@ namespace Ratuj_Ludzi
                 Canvas.SetLeft(target, _random.Next(100, (int)playArea.ActualWidth - 100));
                 Canvas.SetTop(target, _random.Next(100, (int)playArea.ActualHeight - 100));
                 Canvas.SetLeft(human, _random.Next(100, (int)playArea.ActualWidth - 100));
-                Canvas.SetTop(target, _random.Next(100, (int)playArea.ActualHeight - 100));
+                Canvas.SetTop(human, _random.Next(100, (int)playArea.ActualHeight - 100));
+
                 _humanCaptured = false;
                 human.IsHitTestVisible = true;
 
@@ -151,6 +152,7 @@ namespace Ratuj_Ludzi
             {
                 Point pointerPosition = e.GetCurrentPoint(null).Position;
                 Point relativePosition = grid.TransformToVisual(playArea).TransformPoint(pointerPosition);
+
                 if ((Math.Abs(relativePosition.X - Canvas.GetLeft(human)) > human.ActualWidth * 3)
                     || (Math.Abs(relativePosition.Y - Canvas.GetTop(human)) > human.ActualHeight * 3))
                 {
