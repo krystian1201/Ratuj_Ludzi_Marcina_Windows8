@@ -3,9 +3,9 @@ Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio 14
 VisualStudioVersion = 14.0.23107.0
 MinimumVisualStudioVersion = 10.0.40219.1
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Ratuj Ludzi_Windows8", "Ratuj Ludzi\Ratuj Ludzi_Windows8.csproj", "{1CA96ABE-010D-4C56-82C3-A4D6C2FCBAB6}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SaveHumans_Windows8", "Ratuj Ludzi\SaveHumans_Windows8.csproj", "{1CA96ABE-010D-4C56-82C3-A4D6C2FCBAB6}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Ratuj_Ludzi_Android", "Ratuj_Ludzi_Android\Ratuj_Ludzi_Android.csproj", "{47229269-5EE8-4C35-A020-6B9907394EC9}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SaveHumans_Android", "Ratuj_Ludzi_Android\SaveHumans_Android.csproj", "{47229269-5EE8-4C35-A020-6B9907394EC9}"
 EndProject
 Project("{D954291E-2A0B-460D-934E-DC6B0785DB48}") = "SharedProject", "SharedProject\SharedProject.shproj", "{FA02F533-5517-4709-9B85-AB3F824BA65E}"
 EndProject
