@@ -18,18 +18,10 @@ namespace SaveHumans_Android
         ScreenOrientation = ScreenOrientation.Landscape, Theme = "@android:style/Theme.Black.NoTitleBar.Fullscreen")]
     public class MainActivity : Activity
     {
-        #region Private consts
 
-            private const int ENEMY_HEIGHT_IN_DP = 60;
-            private const int TARGET_HEIGHT_IN_DP = 35;
-
-        #endregion Private consts
-
-        
         #region Private fields
 
             private Random _random;
-            private Timer _enemyTimer;
             
             private bool _humanCaptured;
 
@@ -40,6 +32,7 @@ namespace SaveHumans_Android
             
             private List<ImageView> _enemies;
             private Target _target;
+            private Enemy _enemy;
 
         #endregion Private fields
 
@@ -60,7 +53,7 @@ namespace SaveHumans_Android
             {
                 get
                 {
-                    return convertDpToPixels(ENEMY_HEIGHT_IN_DP);
+                    return convertDpToPixels(Enemy.HEIGHT_IN_DP);
                 }
             }
 
@@ -72,8 +65,6 @@ namespace SaveHumans_Android
                     return _humanView ?? (_humanView = _playArea.FindViewById<ImageView>(1));
                 }
             }
-
-            
 
             private Button StartButton
             {
@@ -116,6 +107,14 @@ namespace SaveHumans_Android
                 }
             }
 
+            private Enemy Enemy
+        {
+            get
+            {
+                return _enemy ?? (_enemy = new Enemy(_random));
+            }
+        }
+
         #endregion Private properties
 
 
@@ -140,74 +139,18 @@ namespace SaveHumans_Android
 
             private void initializeTimers()
             {
-                _enemyTimer = new Timer();
-                _enemyTimer.Elapsed += enemyTimer_Tick;
-                _enemyTimer.Interval = 2000;
+                //TODO: make sth with timer to make it more generic (interface?)
+
+                Enemy.InitializeTimer(2000, enemyTimer_Tick);
 
                 Target.InitializeTimer(200, targetTimer_Tick);
             }
 
             private void enemyTimer_Tick(object sender, ElapsedEventArgs e)
             {
-                addEnemy();
+                Enemy.AddEnemy();
             }
 
-            private void addEnemy()
-            {
-
-                Dictionary<string, int> enemyMargins = getEnemyTopAndLeftMargins();
-
-                ImageView enemyView = 
-                    addImageViewToPlayArea(Resource.Drawable.enemy, enemyMargins["left"], enemyMargins["top"], 
-                        EnemyHeightInPixels);
-
-                _enemies.Add(enemyView);
-
-                
-                Dictionary<string, int> animationRanges = getEnemyAnimationMaxRanges();
-
-                animateEnemy(enemyView, 0, animationRanges["horizontal"], "LeftMargin");
-                animateEnemy(enemyView, _random.Next(animationRanges["vertical"]),
-                    _random.Next(animationRanges["vertical"]), "TopMargin");
-            }
-
-            
-            //returned margin values are in pixels
-            private Dictionary<string, int> getEnemyTopAndLeftMargins()
-            {
-                int enemyTopMargin = _random.Next(0, PlayArea.Height - EnemyHeightInPixels);
-                int enemyLeftMargin = _random.Next(0, PlayArea.Width - EnemyWidthInPixels);
-
-                return new Dictionary<string, int>
-                {
-                    {"top", enemyTopMargin},
-                    {"left", enemyLeftMargin }
-                };
-            }
-
-            private Dictionary<string, int> getEnemyAnimationMaxRanges()
-            {
-                //TODO: why is it not enough to substract enemie's dimensions?
-                int horizontalAnimationRange = PlayArea.Width - EnemyWidthInPixels - 85;
-                int verticalAnimationRange = PlayArea.Height - EnemyHeightInPixels - 80;
-
-                return new Dictionary<string, int>
-                    {
-                        {"horizontal", horizontalAnimationRange},
-                        {"vertical", verticalAnimationRange}
-                    };
-            }
-
-            private void animateEnemy(ImageView enemy, int from, int to, string propertyToAnimate)
-            {
-
-                ObjectAnimator anim = ObjectAnimator.OfInt(new MarginProxyAnimator(enemy), propertyToAnimate, from, to);
-                anim.SetDuration(_random.Next(4000, 6000));
-                anim.RepeatCount = int.MaxValue;
-                anim.RepeatMode = ValueAnimatorRepeatMode.Reverse;
-
-                RunOnUiThread(() => anim.Start());
-            }
 
             private void targetTimer_Tick(object sender, ElapsedEventArgs e)
             {
@@ -219,7 +162,7 @@ namespace SaveHumans_Android
 
             private void endTheGame()
             {
-                    _enemyTimer.Stop();
+                    Enemy.Timer.Stop();
                     Target.Timer.Stop();
 
                     _humanCaptured = false;
@@ -257,7 +200,7 @@ namespace SaveHumans_Android
 
                 _humanCaptured = false;
 
-                _enemyTimer.Start();
+                Enemy.Timer.Start();
                 Target.Timer.Start();
             }
 
@@ -274,7 +217,7 @@ namespace SaveHumans_Android
                 _enemies.RemoveAll(e => true);
 
 
-                addImageViewToPlayArea(Resource.Drawable.human2, convertDpToPixels(500), convertDpToPixels(100), 1);
+                ImageViewHelper.AddImageViewToPlayArea(Resource.Drawable.human2, convertDpToPixels(500), convertDpToPixels(100), 1);
                 addImageViewToPlayArea(Resource.Drawable.target3, convertDpToPixels(100), convertDpToPixels(200), 2);
 
                 HumanView.Touch += humanOnTouch;
@@ -288,7 +231,7 @@ namespace SaveHumans_Android
                     //TODO: is it needed on mobile version?
                     case MotionEventActions.Down:
 
-                        if (_enemyTimer.Enabled)
+                        if (Enemy.Timer.Enabled)
                         {
                             _humanCaptured = true;
                         }
@@ -415,7 +358,7 @@ namespace SaveHumans_Android
                 int targetY = targetLayoutParams.TopMargin;
 
                 //TODO: those conversions don't look great (but they are used only in this place in code)
-                int targetHeightInPixels = convertDpToPixels(TARGET_HEIGHT_IN_DP);
+                int targetHeightInPixels = convertDpToPixels(Target.HEIGHT_IN_DP);
                 int targetWidthInPixels = (int) (1.03*targetHeightInPixels);
 
                 if (humanX > targetX && humanX < targetX + targetWidthInPixels &&
@@ -441,29 +384,6 @@ namespace SaveHumans_Android
                 RelativeLayout.LayoutParams targetLayoutParams = (RelativeLayout.LayoutParams)Target.View.LayoutParameters;
                 targetLayoutParams.LeftMargin = _random.Next(horizontalVerticalMin, horizontalMax);
                 targetLayoutParams.TopMargin = _random.Next(horizontalVerticalMin, verticalMax);
-            }
-
-            private ImageView addImageViewToPlayArea(int drawableId, int marginLeft, int marginTop,
-                int? id = null, int controlHeight = ViewGroup.LayoutParams.WrapContent)
-            {
-                ImageView imageView = new ImageView(this);
-                imageView.SetImageResource(drawableId);
-
-                if (id != null)
-                {
-                    imageView.Id = id.Value;
-                }
-
-                RelativeLayout.LayoutParams layoutParams =
-                    new RelativeLayout.LayoutParams(ViewGroup.LayoutParams.WrapContent, controlHeight);
-
-                //margin values are in pixels
-                layoutParams.SetMargins(marginLeft, marginTop, 0, 0);
-                imageView.LayoutParameters = layoutParams;
-
-                RunOnUiThread(() => PlayArea.AddView(imageView));
-
-                return imageView;
             }
 
             

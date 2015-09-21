@@ -8,6 +8,8 @@ namespace SaveHumans_Android
 
     public class Target
     {
+        public const int HEIGHT_IN_DP = 35;
+
         private Timer _timer;
         private ImageView _view;
         private RelativeLayout _playArea;
