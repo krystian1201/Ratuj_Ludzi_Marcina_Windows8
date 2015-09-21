@@ -30,16 +30,16 @@ namespace SaveHumans_Android
 
             private Random _random;
             private Timer _enemyTimer;
-            private Timer _targetTimer;
+            
             private bool _humanCaptured;
 
             private Button _startButton;
             private RelativeLayout _playArea;
             private ProgressBar _progressBar;
             private ImageView _humanView;
-            private ImageView _targetView;
-            private List<ImageView> _enemies;
             
+            private List<ImageView> _enemies;
+            private Target _target;
 
         #endregion Private fields
 
@@ -73,13 +73,7 @@ namespace SaveHumans_Android
                 }
             }
 
-            private ImageView TargetView
-            {
-                get
-                {
-                    return _targetView ?? (_targetView = _playArea.FindViewById<ImageView>(2));
-                }
-            }
+            
 
             private Button StartButton
             {
@@ -114,6 +108,14 @@ namespace SaveHumans_Android
                 }
             }
 
+            private Target Target
+            {
+                get
+                {
+                    return _target ?? (_target = new Target(PlayArea));
+                }
+            }
+
         #endregion Private properties
 
 
@@ -142,10 +144,7 @@ namespace SaveHumans_Android
                 _enemyTimer.Elapsed += enemyTimer_Tick;
                 _enemyTimer.Interval = 2000;
 
-
-                _targetTimer = new Timer();
-                _targetTimer.Elapsed += targetTimer_Tick;
-                _targetTimer.Interval = 200;
+                Target.InitializeTimer(200, targetTimer_Tick);
             }
 
             private void enemyTimer_Tick(object sender, ElapsedEventArgs e)
@@ -221,7 +220,7 @@ namespace SaveHumans_Android
             private void endTheGame()
             {
                     _enemyTimer.Stop();
-                    _targetTimer.Stop();
+                    Target.Timer.Stop();
 
                     _humanCaptured = false;
 
@@ -259,7 +258,7 @@ namespace SaveHumans_Android
                 _humanCaptured = false;
 
                 _enemyTimer.Start();
-                _targetTimer.Start();
+                Target.Timer.Start();
             }
 
             private void resetControls()
@@ -271,7 +270,7 @@ namespace SaveHumans_Android
 
                 PlayArea.RemoveAllViews();
                 _humanView = null;
-                _targetView = null;
+                Target.SetViewToNull();
                 _enemies.RemoveAll(e => true);
 
 
@@ -410,7 +409,7 @@ namespace SaveHumans_Android
                 int humanY = HumanLayoutParams.TopMargin;
 
 
-                RelativeLayout.LayoutParams targetLayoutParams = (RelativeLayout.LayoutParams)TargetView.LayoutParameters;
+                RelativeLayout.LayoutParams targetLayoutParams = (RelativeLayout.LayoutParams)Target.View.LayoutParameters;
 
                 int targetX = targetLayoutParams.LeftMargin;
                 int targetY = targetLayoutParams.TopMargin;
@@ -439,7 +438,7 @@ namespace SaveHumans_Android
                 HumanLayoutParams.LeftMargin = _random.Next(horizontalVerticalMin, horizontalMax);
                 HumanLayoutParams.TopMargin = _random.Next(horizontalVerticalMin, verticalMax);
 
-                RelativeLayout.LayoutParams targetLayoutParams = (RelativeLayout.LayoutParams)TargetView.LayoutParameters;
+                RelativeLayout.LayoutParams targetLayoutParams = (RelativeLayout.LayoutParams)Target.View.LayoutParameters;
                 targetLayoutParams.LeftMargin = _random.Next(horizontalVerticalMin, horizontalMax);
                 targetLayoutParams.TopMargin = _random.Next(horizontalVerticalMin, verticalMax);
             }
