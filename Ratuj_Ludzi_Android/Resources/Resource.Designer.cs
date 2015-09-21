@@ -11,7 +11,7 @@
 
 [assembly: global::Android.Runtime.ResourceDesignerAttribute("Ratuj_Ludzi_Android.Resource", IsApplication=true)]
 
-namespace SaveHumans.Android
+namespace Ratuj_Ludzi_Android
 {
 	
 	
