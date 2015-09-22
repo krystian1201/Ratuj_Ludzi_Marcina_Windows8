@@ -51,7 +51,7 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="Enemy.cs" />
-    <Compile Include="ImageViewHelper.cs" />
+    <Compile Include="ViewHelper.cs" />
     <Compile Include="MainActivity.cs" />
     <Compile Include="MarginProxyAnimator.cs" />
     <Compile Include="Resources\Resource.Designer.cs" />

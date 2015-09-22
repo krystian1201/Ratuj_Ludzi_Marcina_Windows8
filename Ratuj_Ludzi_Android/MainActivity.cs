@@ -30,7 +30,7 @@ namespace SaveHumans_Android
             private ProgressBar _progressBar;
             private ImageView _humanView;
             
-            private List<ImageView> _enemies;
+            
             private Target _target;
             private Enemy _enemy;
 
@@ -39,23 +39,7 @@ namespace SaveHumans_Android
 
         #region Private properties
 
-            private int EnemyWidthInPixels
-            {
-                get
-                {
-                    const double widthToHeightRatio = 0.77;
-
-                    return (int)(widthToHeightRatio * EnemyHeightInPixels);
-                }
-            }
-
-            private int EnemyHeightInPixels
-            {
-                get
-                {
-                    return convertDpToPixels(Enemy.HEIGHT_IN_DP);
-                }
-            }
+            
 
             private ImageView HumanView
             {
@@ -74,7 +58,7 @@ namespace SaveHumans_Android
                 }
             }
 
-            private RelativeLayout PlayArea
+            public RelativeLayout PlayArea
             {
                 get
                 {
@@ -108,12 +92,12 @@ namespace SaveHumans_Android
             }
 
             private Enemy Enemy
-        {
-            get
             {
-                return _enemy ?? (_enemy = new Enemy(_random));
+                get
+                {
+                    return _enemy ?? (_enemy = new Enemy(this, _random));
+                }
             }
-        }
 
         #endregion Private properties
 
@@ -130,8 +114,7 @@ namespace SaveHumans_Android
 
             _humanCaptured = false;
 
-            _enemies = new List<ImageView>();
-            
+            ViewHelper.Activity = this;
         }
 
 
@@ -148,7 +131,16 @@ namespace SaveHumans_Android
 
             private void enemyTimer_Tick(object sender, ElapsedEventArgs e)
             {
-                Enemy.AddEnemy();
+                ImageView enemyView = Enemy.SetupNewEnemyView(this);
+
+                Dictionary<string, ObjectAnimator> animations =
+                    Enemy.SetupEnemyAnimations(enemyView);
+
+                RunOnUiThread(() => animations["horizontal"].Start());
+                RunOnUiThread(() => animations["vertical"].Start());
+
+                //TODO: Is it needed?
+                RunOnUiThread(() => PlayArea.AddView(enemyView));
             }
 
 
@@ -186,7 +178,9 @@ namespace SaveHumans_Android
                     new RelativeLayout.LayoutParams(ViewGroup.LayoutParams.WrapContent,
                     ViewGroup.LayoutParams.WrapContent);
 
-                layoutParams.SetMargins(convertDpToPixels(200), convertDpToPixels(150), 0, 0);
+                layoutParams.SetMargins(ViewHelper.ConvertDpToPixels(200), 
+                    ViewHelper.ConvertDpToPixels(150), 0, 0);
+
                 gameOverTextView.LayoutParameters = layoutParams;
                 gameOverTextView.BringToFront();
 
@@ -214,11 +208,19 @@ namespace SaveHumans_Android
                 PlayArea.RemoveAllViews();
                 _humanView = null;
                 Target.SetViewToNull();
-                _enemies.RemoveAll(e => true);
+                Enemy.RemoveAllEnemies();
 
 
-                ImageViewHelper.AddImageViewToPlayArea(Resource.Drawable.human2, convertDpToPixels(500), convertDpToPixels(100), 1);
-                addImageViewToPlayArea(Resource.Drawable.target3, convertDpToPixels(100), convertDpToPixels(200), 2);
+                var humanImageView = ViewHelper.CreateImageView(this, Resource.Drawable.human2, 
+                    ViewHelper.ConvertDpToPixels(500), ViewHelper.ConvertDpToPixels(100), 1);
+
+                RunOnUiThread(() => PlayArea.AddView(humanImageView));
+
+
+                var targetImageView = ViewHelper.CreateImageView(this, Resource.Drawable.target3,
+                    ViewHelper.ConvertDpToPixels(100), ViewHelper.ConvertDpToPixels(200), 2);
+
+                RunOnUiThread(() => PlayArea.AddView(targetImageView));
 
                 HumanView.Touch += humanOnTouch;
             }
@@ -319,7 +321,7 @@ namespace SaveHumans_Android
                 int humanX = HumanLayoutParams.LeftMargin;
                 int humanY = HumanLayoutParams.TopMargin;
 
-                foreach (var enemy in _enemies)
+                foreach (var enemy in Enemy.Enemies)
                 {
                     if (humanHitThisEnemy(enemy, humanX, humanY))
                         return true;
@@ -335,8 +337,8 @@ namespace SaveHumans_Android
                 int enemyX = enemyLayoutParams.LeftMargin;
                 int enemyY = enemyLayoutParams.TopMargin;
 
-                if (humanX > enemyX && humanX < enemyX + EnemyWidthInPixels &&
-                    humanY > enemyY && humanY < enemyY + EnemyHeightInPixels)
+                if (humanX > enemyX && humanX < enemyX + Enemy.EnemyWidthInPixels &&
+                    humanY > enemyY && humanY < enemyY + Enemy.EnemyHeightInPixels)
                 {
                     return true;
                 }
@@ -358,7 +360,7 @@ namespace SaveHumans_Android
                 int targetY = targetLayoutParams.TopMargin;
 
                 //TODO: those conversions don't look great (but they are used only in this place in code)
-                int targetHeightInPixels = convertDpToPixels(Target.HEIGHT_IN_DP);
+                int targetHeightInPixels = ViewHelper.ConvertDpToPixels(Target.HEIGHT_IN_DP);
                 int targetWidthInPixels = (int) (1.03*targetHeightInPixels);
 
                 if (humanX > targetX && humanX < targetX + targetWidthInPixels &&
@@ -386,13 +388,6 @@ namespace SaveHumans_Android
                 targetLayoutParams.TopMargin = _random.Next(horizontalVerticalMin, verticalMax);
             }
 
-            
-            private int convertDpToPixels(int pixels)
-            {
-                float scale = ApplicationContext.Resources.DisplayMetrics.Density;
-
-                return (int)(pixels * scale + 0.5f);
-            }
 
         #endregion Private methods
 
