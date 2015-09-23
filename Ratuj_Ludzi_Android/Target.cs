@@ -13,6 +13,7 @@ namespace SaveHumans_Android
         private Timer _timer;
         private ImageView _view;
         private RelativeLayout _playArea;
+        
 
         public ImageView View
         {
@@ -30,6 +31,7 @@ namespace SaveHumans_Android
             }
         }
 
+        
         public Target(RelativeLayout playArea)
         {
             _playArea = playArea;

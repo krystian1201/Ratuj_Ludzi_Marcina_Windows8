@@ -23,8 +23,6 @@ namespace SaveHumans_Android
 
             private Random _random;
             
-            private bool _humanCaptured;
-
             private Button _startButton;
             private RelativeLayout _playArea;
             private ProgressBar _progressBar;
@@ -32,23 +30,14 @@ namespace SaveHumans_Android
             
             
             private Target _target;
+            private Human _human;
             private Enemy _enemy;
 
         #endregion Private fields
 
 
         #region Private properties
-
-            
-
-            private ImageView HumanView
-            {
-                get
-                {
-                    //TODO: is 1 the proper id here?
-                    return _humanView ?? (_humanView = _playArea.FindViewById<ImageView>(1));
-                }
-            }
+  
 
             private Button StartButton
             {
@@ -64,7 +53,6 @@ namespace SaveHumans_Android
                 {
                     return _playArea ?? (_playArea = FindViewById<RelativeLayout>(Resource.Id.relativeLayoutPlayground));
                 }
-            
             }
 
             private ProgressBar ProgressBar
@@ -75,11 +63,15 @@ namespace SaveHumans_Android
                 }
             }
 
-            private RelativeLayout.LayoutParams HumanLayoutParams
+            private Human Human
             {
                 get
                 {
-                    return (RelativeLayout.LayoutParams) HumanView.LayoutParameters;
+                    return _human ?? (_human = new Human(_random, PlayArea, _enemy, _target, this));
+                }
+                set
+                {
+                    _human = value;
                 }
             }
 
@@ -112,9 +104,10 @@ namespace SaveHumans_Android
 
             initializeTimers();
 
-            _humanCaptured = false;
+            Human.IsCaptured = false;
 
             ViewHelper.Activity = this;
+            ViewHelper.Context = this;
         }
 
 
@@ -139,7 +132,6 @@ namespace SaveHumans_Android
                 RunOnUiThread(() => animations["horizontal"].Start());
                 RunOnUiThread(() => animations["vertical"].Start());
 
-                //TODO: Is it needed?
                 RunOnUiThread(() => PlayArea.AddView(enemyView));
             }
 
@@ -149,50 +141,32 @@ namespace SaveHumans_Android
                 ProgressBar.Progress += 1;
 
                 if (ProgressBar.Progress >= ProgressBar.Max)
-                    endTheGame();
+                    EndTheGame();
             }
 
-            private void endTheGame()
+
+            //TODO: it doesn't look good that this method has to be public
+            public void EndTheGame()
             {
-                    Enemy.Timer.Stop();
-                    Target.Timer.Stop();
+                Enemy.Timer.Stop();
+                Target.Timer.Stop();
 
-                    _humanCaptured = false;
+                Human.IsCaptured = false;
 
-                    RunOnUiThread(() => StartButton.Enabled = true);
+                RunOnUiThread(() => StartButton.Enabled = true);
 
-                    addGameOverText();
- 
-            }
-
-            private void addGameOverText()
-            {
-                TextView gameOverTextView = new TextView(this);
-
-                gameOverTextView.Text = "Game over";
-                gameOverTextView.TextSize = 48;
-                gameOverTextView.SetTextColor(Color.White);
-
-
-                RelativeLayout.LayoutParams layoutParams =
-                    new RelativeLayout.LayoutParams(ViewGroup.LayoutParams.WrapContent,
-                    ViewGroup.LayoutParams.WrapContent);
-
-                layoutParams.SetMargins(ViewHelper.ConvertDpToPixels(200), 
-                    ViewHelper.ConvertDpToPixels(150), 0, 0);
-
-                gameOverTextView.LayoutParameters = layoutParams;
-                gameOverTextView.BringToFront();
+                TextView gameOverTextView = ViewHelper.CreateGameOverTextView();
 
                 RunOnUiThread(() => PlayArea.AddView(gameOverTextView));
+
             }
+
 
             private void startGame()
             {
-
                 resetControls();
 
-                _humanCaptured = false;
+                Human.IsCaptured = false;
 
                 Enemy.Timer.Start();
                 Target.Timer.Start();
@@ -211,183 +185,17 @@ namespace SaveHumans_Android
                 Enemy.RemoveAllEnemies();
 
 
-                var humanImageView = ViewHelper.CreateImageView(this, Resource.Drawable.human2, 
-                    ViewHelper.ConvertDpToPixels(500), ViewHelper.ConvertDpToPixels(100), 1);
+                Human = new Human(_random, PlayArea, Enemy, Target, this);
 
-                RunOnUiThread(() => PlayArea.AddView(humanImageView));
+                RunOnUiThread(() => PlayArea.AddView(Human.View));
 
 
-                var targetImageView = ViewHelper.CreateImageView(this, Resource.Drawable.target3,
+                var targetImageView = ViewHelper.CreateImageView(Resource.Drawable.target3,
                     ViewHelper.ConvertDpToPixels(100), ViewHelper.ConvertDpToPixels(200), 2);
 
                 RunOnUiThread(() => PlayArea.AddView(targetImageView));
 
-                HumanView.Touch += humanOnTouch;
             }
-
-
-            private void humanOnTouch(object sender, View.TouchEventArgs touchEventArgs)
-            {
-                switch (touchEventArgs.Event.Action)
-                {
-                    //TODO: is it needed on mobile version?
-                    case MotionEventActions.Down:
-
-                        if (Enemy.Timer.Enabled)
-                        {
-                            _humanCaptured = true;
-                        }
-
-                        break;
-                    
-                    case MotionEventActions.Move:
-
-                        if (_humanCaptured)
-                        {
-                            moveHuman(touchEventArgs);
-                        }
-
-                        break;
-                }
-            }
-
-            private void moveHuman(View.TouchEventArgs touchEventArgs)
-            {
-   
-                int touchX = (int) touchEventArgs.Event.RawX;
-                int touchY = (int) touchEventArgs.Event.RawY;
-
-                
-                int deltaX = touchX - HumanLayoutParams.LeftMargin;
-                int deltaY = touchY - HumanLayoutParams.TopMargin;
-
-
-                //end the game when human exited the play area
-                if (humanExitedPlayArea(touchX, touchY))
-                {
-                    endTheGame();
-                    return;
-                }
-
-                //dropping human when moving too fast
-                if (humanMovesTooFast(deltaX, deltaY)) 
-                {
-                    _humanCaptured = false;
-                    return;
-                }
-
-
-                //actual movement of human
-                moveHuman(HumanLayoutParams, deltaX, deltaY);
-
-                //detecting collision of human and enemy
-                //TODO: should it come before moving human?
-                if (humanHitAnyOfEnemies())
-                {
-                    endTheGame();
-                }
-                else if(humanEnteredTarget())
-                {
-                    ProgressBar.Progress = 0;
-
-                    moveHumanAndTargetToNewRandomLocations();
-
-                    _humanCaptured = false;
-                }
-            }
-
-        
-            private bool humanExitedPlayArea(int touchX, int touchY)
-            {
-                return touchX > PlayArea.Width || touchY > PlayArea.Height;
-            }
-
-            private bool humanMovesTooFast(int deltaX, int deltaY)
-            {
-                return Math.Sqrt(Math.Pow(deltaX, 2) + Math.Pow(deltaY, 2)) > HumanView.Width * 2;
-            }
-
-            private void moveHuman(RelativeLayout.LayoutParams layoutParams, int deltaX, int deltaY)
-            {
-                layoutParams.LeftMargin += deltaX - HumanView.Width / 2;
-                layoutParams.TopMargin += deltaY - HumanView.Height / 2;
-
-                HumanView.LayoutParameters = layoutParams;
-            }
-
-            private bool humanHitAnyOfEnemies()
-            {
-
-                int humanX = HumanLayoutParams.LeftMargin;
-                int humanY = HumanLayoutParams.TopMargin;
-
-                foreach (var enemy in Enemy.Enemies)
-                {
-                    if (humanHitThisEnemy(enemy, humanX, humanY))
-                        return true;
-                }
-
-                return false;
-            }
-
-            private bool humanHitThisEnemy(ImageView enemy, int humanX, int humanY)
-            {
-                RelativeLayout.LayoutParams enemyLayoutParams = (RelativeLayout.LayoutParams) enemy.LayoutParameters;
-
-                int enemyX = enemyLayoutParams.LeftMargin;
-                int enemyY = enemyLayoutParams.TopMargin;
-
-                if (humanX > enemyX && humanX < enemyX + Enemy.EnemyWidthInPixels &&
-                    humanY > enemyY && humanY < enemyY + Enemy.EnemyHeightInPixels)
-                {
-                    return true;
-                }
-
-                return false;
-            }
-
-
-            private bool humanEnteredTarget()
-            {
-
-                int humanX = HumanLayoutParams.LeftMargin;
-                int humanY = HumanLayoutParams.TopMargin;
-
-
-                RelativeLayout.LayoutParams targetLayoutParams = (RelativeLayout.LayoutParams)Target.View.LayoutParameters;
-
-                int targetX = targetLayoutParams.LeftMargin;
-                int targetY = targetLayoutParams.TopMargin;
-
-                //TODO: those conversions don't look great (but they are used only in this place in code)
-                int targetHeightInPixels = ViewHelper.ConvertDpToPixels(Target.HEIGHT_IN_DP);
-                int targetWidthInPixels = (int) (1.03*targetHeightInPixels);
-
-                if (humanX > targetX && humanX < targetX + targetWidthInPixels &&
-                        humanY > targetY && humanY < targetY + targetHeightInPixels)
-                {
-
-                    return true;
-                }
-
-                return false;
-            }
-
-            private void moveHumanAndTargetToNewRandomLocations()
-            {
-                const int horizontalVerticalMin = 100;
-                int horizontalMax = PlayArea.Width - 100;
-                int verticalMax = PlayArea.Height - 100;
-
-
-                HumanLayoutParams.LeftMargin = _random.Next(horizontalVerticalMin, horizontalMax);
-                HumanLayoutParams.TopMargin = _random.Next(horizontalVerticalMin, verticalMax);
-
-                RelativeLayout.LayoutParams targetLayoutParams = (RelativeLayout.LayoutParams)Target.View.LayoutParameters;
-                targetLayoutParams.LeftMargin = _random.Next(horizontalVerticalMin, horizontalMax);
-                targetLayoutParams.TopMargin = _random.Next(horizontalVerticalMin, verticalMax);
-            }
-
 
         #endregion Private methods
 

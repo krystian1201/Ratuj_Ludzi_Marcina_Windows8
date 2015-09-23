@@ -99,7 +99,7 @@ namespace SaveHumans_Android
                 Dictionary<string, int> enemyMargins = getEnemyTopAndLeftMargins();
 
                 ImageView enemyView =
-                    ViewHelper.CreateImageView(context, Resource.Drawable.enemy, enemyMargins["left"], enemyMargins["top"],
+                    ViewHelper.CreateImageView(Resource.Drawable.enemy, enemyMargins["left"], enemyMargins["top"],
                         EnemyHeightInPixels);
 
                 _enemies.Add(enemyView);
