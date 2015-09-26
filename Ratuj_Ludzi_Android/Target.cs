@@ -1,4 +1,5 @@
 
+using System;
 using System.Timers;
 using Android.Widget;
 
@@ -10,42 +11,66 @@ namespace SaveHumans_Android
     {
         public const int HEIGHT_IN_DP = 35;
 
-        private Timer _timer;
-        private ImageView _view;
-        private RelativeLayout _playArea;
-        
+        #region Private fields
 
-        public ImageView View
-        {
-            get
+            private readonly Random _random;
+            private Timer _timer;
+            private ImageView _view;
+            private readonly RelativeLayout _playArea;
+
+        #endregion Private fields
+
+        #region Public properties
+
+            public ImageView View
             {
-                return _view ?? (_view = _playArea.FindViewById<ImageView>(2));
+                get
+                {
+                    return _view ?? (_view = _playArea.FindViewById<ImageView>(2));
+                }
             }
-        }
 
-        public Timer Timer
-        {
-            get
+            public Timer Timer
             {
-                return _timer ?? (_timer = new Timer());
+                get
+                {
+                    return _timer ?? (_timer = new Timer());
+                }
             }
-        }
 
-        
-        public Target(RelativeLayout playArea)
-        {
-            _playArea = playArea;
-        }
+        #endregion Public properties
 
-        public void InitializeTimer(int interval, ElapsedEventHandler elapsedEventHandler)
-        {
-            Timer.Interval = interval;
-            Timer.Elapsed += elapsedEventHandler;
-        }
+        #region Public methods
 
-        public void SetViewToNull()
-        {
-            _view = null;
-        }
+            public Target(Random random, RelativeLayout playArea)
+            {
+                _playArea = playArea;
+                _random = random;
+            }
+
+            public void InitializeTimer(int interval, ElapsedEventHandler elapsedEventHandler)
+            {
+                Timer.Interval = interval;
+                Timer.Elapsed += elapsedEventHandler;
+            }
+
+            public void SetViewToNull()
+            {
+                _view = null;
+            }
+
+            public void moveTargetToNewRandomLocation()
+            {
+                const int horizontalVerticalMin = 100;
+                int horizontalMax = _playArea.Width - 100;
+                int verticalMax = _playArea.Height - 100;
+
+                RelativeLayout.LayoutParams targetLayoutParams = (RelativeLayout.LayoutParams)View.LayoutParameters;
+                targetLayoutParams.LeftMargin = _random.Next(horizontalVerticalMin, horizontalMax);
+                targetLayoutParams.TopMargin = _random.Next(horizontalVerticalMin, verticalMax);
+            }
+
+        #endregion Public methods
+
     }
 }

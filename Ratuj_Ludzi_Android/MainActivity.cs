@@ -5,7 +5,6 @@ using System.Timers;
 using Android.Animation;
 using Android.App;
 using Android.Content.PM;
-using Android.Graphics;
 using Android.OS;
 using Android.Views;
 using Android.Widget;
@@ -26,8 +25,6 @@ namespace SaveHumans_Android
             private Button _startButton;
             private RelativeLayout _playArea;
             private ProgressBar _progressBar;
-            private ImageView _humanView;
-            
             
             private Target _target;
             private Human _human;
@@ -79,7 +76,7 @@ namespace SaveHumans_Android
             {
                 get
                 {
-                    return _target ?? (_target = new Target(PlayArea));
+                    return _target ?? (_target = new Target(_random, PlayArea));
                 }
             }
 
@@ -104,18 +101,51 @@ namespace SaveHumans_Android
 
             initializeTimers();
 
-            Human.IsCaptured = false;
 
             ViewHelper.Activity = this;
             ViewHelper.Context = this;
+
+
+            Human.IsCaptured = false;
+
         }
 
+        #region Public methods
+
+            [Export("startButton_Click")]
+            public void startButton_Click(View view)
+            {
+                startGame();
+            }
+
+            //TODO: it doesn't look good that this method has to be public
+            public void EndTheGame()
+            {
+                Enemy.Timer.Stop();
+                Target.Timer.Stop();
+
+                Human.IsCaptured = false;
+
+                RunOnUiThread(() => StartButton.Enabled = true);
+
+                TextView gameOverTextView = ViewHelper.CreateGameOverTextView();
+
+                RunOnUiThread(() => PlayArea.AddView(gameOverTextView));
+
+            }
+
+            public void SetProgressBarValueToZero()
+            {
+                ProgressBar.Progress = 0;
+            }
+
+        #endregion Public methods
 
         #region Private methods
 
             private void initializeTimers()
             {
-                //TODO: make sth with timer to make it more generic (interface?)
+                //TODO: make sth with timer to make it more generic (interface? abstract class?)
 
                 Enemy.InitializeTimer(2000, enemyTimer_Tick);
 
@@ -135,7 +165,6 @@ namespace SaveHumans_Android
                 RunOnUiThread(() => PlayArea.AddView(enemyView));
             }
 
-
             private void targetTimer_Tick(object sender, ElapsedEventArgs e)
             {
                 ProgressBar.Progress += 1;
@@ -143,24 +172,6 @@ namespace SaveHumans_Android
                 if (ProgressBar.Progress >= ProgressBar.Max)
                     EndTheGame();
             }
-
-
-            //TODO: it doesn't look good that this method has to be public
-            public void EndTheGame()
-            {
-                Enemy.Timer.Stop();
-                Target.Timer.Stop();
-
-                Human.IsCaptured = false;
-
-                RunOnUiThread(() => StartButton.Enabled = true);
-
-                TextView gameOverTextView = ViewHelper.CreateGameOverTextView();
-
-                RunOnUiThread(() => PlayArea.AddView(gameOverTextView));
-
-            }
-
 
             private void startGame()
             {
@@ -178,12 +189,10 @@ namespace SaveHumans_Android
 
                 StartButton.Enabled = false;
 
-
                 PlayArea.RemoveAllViews();
-                _humanView = null;
+                Human.SetViewToNull();
                 Target.SetViewToNull();
                 Enemy.RemoveAllEnemies();
-
 
                 Human = new Human(_random, PlayArea, Enemy, Target, this);
 
@@ -198,17 +207,6 @@ namespace SaveHumans_Android
             }
 
         #endregion Private methods
-
-
-        #region Public methods
-
-            [Export("startButton_Click")]
-            public void startButton_Click(View view)
-            {
-                startGame();
-            }
-
-        #endregion Public methods
 
     }
 

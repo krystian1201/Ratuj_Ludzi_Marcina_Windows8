@@ -2,7 +2,6 @@ using System;
 using System.Collections.Generic;
 using System.Timers;
 using Android.Animation;
-using Android.App;
 using Android.Content;
 using Android.Widget;
 using Ratuj_Ludzi_Android;
@@ -11,7 +10,7 @@ namespace SaveHumans_Android
 {
     public class Enemy
     {
-        #region consts
+        #region Consts
 
             public const int HEIGHT_IN_DP = 60;
 
@@ -20,17 +19,13 @@ namespace SaveHumans_Android
         #region Private fields
 
             private Timer _timer;
-
-            private Random _random;
-
-            private MainActivity _activity;
-
-            private List<ImageView> _enemies;
+            private readonly Random _random;
+            private readonly MainActivity _activity;
+            private readonly List<ImageView> _enemies;
 
         #endregion Private fields
 
         #region Private properties
-
 
 
         #endregion Private properties
@@ -54,7 +49,7 @@ namespace SaveHumans_Android
             {
                 get
                 {
-                    return ViewHelper.ConvertDpToPixels(Enemy.HEIGHT_IN_DP);
+                    return ViewHelper.ConvertDpToPixels(HEIGHT_IN_DP);
                 }
             }
 
@@ -126,7 +121,7 @@ namespace SaveHumans_Android
             }
 
 
-        public void RemoveAllEnemies()
+            public void RemoveAllEnemies()
         {
             _enemies.RemoveAll(e => true);
         }
